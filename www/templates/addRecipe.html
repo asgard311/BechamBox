@@ -1,0 +1,15 @@
+<ion-view view-title='Add Recipe'>
+	<ion-content>
+		<h3>Add A Recipe</h3>
+    <form ng-submit="grabRecipe()">
+      <div class="list">
+        <label class="item item-input"> 
+          <input type="url" required ng-model="recipeForm.URL" placeholder='http://'>
+        </label>
+        <label class="item">
+          <button class="button button-block button-positive" type="submit">Add Recipe</button>
+        </label>
+      </div>
+    </form>
+	<ion-content>
+</ion-view>

@@ -4,7 +4,7 @@
 // 'starter' is the name of this angular module example (also set in a <body> attribute in index.html)
 // the 2nd parameter is an array of 'requires'
 // 'starter.controllers' is found in controllers.js
-angular.module('BechamBox', ['ionic', 'BechamBox.controllers','BechamBox.services'])
+angular.module('BechamBox', ['ionic', 'BechamBox.controllers','BechamBox.services','BechamBox.filters','ngCordova'])
 
 .run(function($ionicPlatform) {
   $ionicPlatform.ready(function() {
@@ -15,7 +15,13 @@ angular.module('BechamBox', ['ionic', 'BechamBox.controllers','BechamBox.service
       cordova.plugins.Keyboard.disableScroll(true);
 
     }
-    if (window.StatusBar) {
+
+	var db = $cordovaSQLite.openDB("recipes.db");
+    $cordovaSQLite.execute(db, "CREATE TABLE IF NOT EXISTS recipes (id integer primary key, name text,img text,url text, instructions text)");
+    $cordovaSQLite.execute(db, "CREATE TABLE IF NOT EXISTS recipe_ingredients (id integer primary key,FOREIGN KEY(recipe) REFERENCES recipes(id),ingredient text)");
+
+    
+	if (window.StatusBar) {
       // org.apache.cordova.statusbar required
       StatusBar.styleDefault();
     }

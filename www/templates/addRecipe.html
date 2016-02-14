@@ -13,3 +13,29 @@
     </form>
 	<ion-content>
 </ion-view>
+
+<script id="recipe-confirm.html" type="text/ng-template">
+  <ion-modal-view>
+    <ion-header-bar>
+      <h1 class="title">Confirm Recipe</h1>
+    </ion-header-bar>
+    <ion-content>
+		<ion-list>
+			<ion-item class='item-thumbnail-left'><img ng-src='{{recipe.img}}'>{{recipe.name}}
+				<p>{{recipeForm.URL}}</p></ion-item>
+			<ion-item class='item-divider'>Ingredients</ion-item>
+			<ion-item ng-repeat='item in recipe.ingredients'>{{item}}</ion-item>
+			<ion-item class='item-divider item-button-right'>Instructions<button class='button button-stable button-small button-clear' ng-click='toggleEdit()'><span ng-show="!showEdit">Edit</span><span ng-show="showEdit">Save</span></button></ion-item>
+			<ion-item ng-show="!showEdit" class='item-text-wrap'><div ng-bind-html='recipe.instructions| to_trusted'></div></ion-item>
+			<ion-item ng-show="showEdit" class='item-input'>
+				<textarea rows='20' ng-model="recipe.instructions"></textarea>
+			</ion-item>
+			<ion-item class='button-bar'>
+				<a class='button button-positive' ng-click="saveRecipe()">Save</a>
+				<a class='button button-light' ng-click='closeModal()'>Cancel</a></ion-item>
+		</ion-list>
+
+		<button ng-click='closeModal()'>Close</button>
+    </ion-content>
+  </ion-modal-view>
+</script>

@@ -41,13 +41,81 @@ angular.module('BechamBox.controllers', [])
   };
 })
 
-.controller('addRecipeCtrl',function($scope,scrape){
+.controller('addRecipeCtrl',function($scope,scrape,$ionicModal,$ionicLoading,$sce,$cordovaSQLite){
 	$scope.recipeForm = {URL:'http://www.foodnetwork.com/recipes/rachael-ray/lemon-chicken-recipe.html'};
 
+	$scope.showEdit = false;
+	var db = $cordovaSQLite.openDB({ name: "recipes.db" });
+
+	$ionicModal.fromTemplateUrl('recipe-confirm.html',{
+		scope:$scope,
+		animation:'slide-in-up'
+	}).then(function(modal){
+		$scope.modal = modal;
+	});
+	
 	//ADD ERROR CHECK
 	$scope.grabRecipe = function(){
-		scrape.get($scope.recipeForm.URL);
+		$ionicLoading.show({ template: 'Gathering Recipe'});
+
+		scrape.get($scope.recipeForm.URL).then(function(data){
+			$ionicLoading.hide();
+			$scope.recipe = data;
+			$scope.openModal();
+		});
 	};	
+
+
+	$scope.saveRecipe = function(){
+		//save into sql (check if same url, and if so overwrite it
+		var query = "SELECT id FROM recipes WHERE url = ?";
+		$cordovaSQLite.execute(db,query,[$scope.recipeForm.URL]).then(function(res){
+			//if recipe exists based on URL - update
+			if(res.rows.length > 0){
+				var recipe_id = res.rows.item(0).id;
+	    		$cordovaSQLite.execute(db, "UPDATE recipes SET name = ?,img = ?,instructions = ? WHERE id = ?",
+					[$scope.recipe.name,$scope.recipe.img,$scope.recipe.instructions,recipe_id]).then(function(res) {
+    					//delete/insert new ingredients
+					$cordovaSQLite.execute(db,"DELETE FROM recipe_ingredients WHERE recipe = ?",[recipe_id]).then(function(res){
+						$scope.recipe.ingredients.forEach(function(val){
+							$cordovaSQLite.execute(db,"INSERT INTO recipe_ingredients (recipe,ingredient) VALUES (?,?)",[recipe_id,val])
+						});
+					});
+						
+				}, function (err) {
+	      					console.error(err);
+    			});
+			}else{
+				//inserting
+				$cordovaSQLite.execute(db, "INSERT INTO recipes (name,img,text,url,instructions) VALUES (?,?,?,?,?)", 
+					[$scope.recipe.name,$scope.recipe.img,$scope.recipeForm.URL,$scope.recipe.instructions]).then(function(res) {						
+					var recipe_id = res.insertId;
+    				//insert new ingredients
+					$scope.recipe.ingredients.forEach(function(val){
+						$cordovaSQLite.execute(db,"INSERT INTO recipe_ingredients (recipe,ingredient) VALUES (?,?)",[recipe_id,val])
+					});				
+				}, function (err) {
+	      				console.error(err);
+    			});
+			}			
+		});
+   	};
+
+	$scope.toggleEdit = function(){
+		$scope.showEdit = $scope.showEdit ? false : true;
+		console.log($scope.showEdit);
+	};
+
+	$scope.openModal = function() {
+    	$scope.modal.show();
+  	};
+  	$scope.closeModal = function() {
+    	$scope.modal.hide();
+  	};
+  	//Cleanup the modal when we're done with it!
+  	$scope.$on('$destroy', function() {
+    	$scope.modal.remove();
+  	});
 
 })
 

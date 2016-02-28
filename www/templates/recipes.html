@@ -1,0 +1,7 @@
+<ion-view view-title='My Recipes'>
+	<ion-content>
+		<ion-list>
+			<a class='item item-thumbnail-left' ui-sref='app.recipe({id:recipe.id})' ng-repeat="recipe in recipes" class='item-thumbnail-left'><img src='{{recipe.img}}'>{{recipe.name}}</a>
+		</ion-list>
+	</ion-content>
+</ion-view>

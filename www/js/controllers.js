@@ -41,11 +41,10 @@ angular.module('BechamBox.controllers', [])
   };
 })
 
-.controller('addRecipeCtrl',function($scope,scrape,$ionicModal,$ionicLoading,$sce,$cordovaSQLite){
+.controller('addRecipeCtrl',function($scope,scrape,$state,$ionicModal,$ionicLoading,$ionicPopup,$sce,DB){
 	$scope.recipeForm = {URL:'http://www.foodnetwork.com/recipes/rachael-ray/lemon-chicken-recipe.html'};
 
 	$scope.showEdit = false;
-	var db = $cordovaSQLite.openDB({ name: "recipes.db" });
 
 	$ionicModal.fromTemplateUrl('recipe-confirm.html',{
 		scope:$scope,
@@ -67,37 +66,18 @@ angular.module('BechamBox.controllers', [])
 
 
 	$scope.saveRecipe = function(){
-		//save into sql (check if same url, and if so overwrite it
-		var query = "SELECT id FROM recipes WHERE url = ?";
-		$cordovaSQLite.execute(db,query,[$scope.recipeForm.URL]).then(function(res){
-			//if recipe exists based on URL - update
-			if(res.rows.length > 0){
-				var recipe_id = res.rows.item(0).id;
-	    		$cordovaSQLite.execute(db, "UPDATE recipes SET name = ?,img = ?,instructions = ? WHERE id = ?",
-					[$scope.recipe.name,$scope.recipe.img,$scope.recipe.instructions,recipe_id]).then(function(res) {
-    					//delete/insert new ingredients
-					$cordovaSQLite.execute(db,"DELETE FROM recipe_ingredients WHERE recipe = ?",[recipe_id]).then(function(res){
-						$scope.recipe.ingredients.forEach(function(val){
-							$cordovaSQLite.execute(db,"INSERT INTO recipe_ingredients (recipe,ingredient) VALUES (?,?)",[recipe_id,val])
-						});
-					});
-						
-				}, function (err) {
-	      					console.error(err);
-    			});
-			}else{
-				//inserting
-				$cordovaSQLite.execute(db, "INSERT INTO recipes (name,img,text,url,instructions) VALUES (?,?,?,?,?)", 
-					[$scope.recipe.name,$scope.recipe.img,$scope.recipeForm.URL,$scope.recipe.instructions]).then(function(res) {						
-					var recipe_id = res.insertId;
-    				//insert new ingredients
-					$scope.recipe.ingredients.forEach(function(val){
-						$cordovaSQLite.execute(db,"INSERT INTO recipe_ingredients (recipe,ingredient) VALUES (?,?)",[recipe_id,val])
-					});				
-				}, function (err) {
-	      				console.error(err);
-    			});
-			}			
+		var ret = DB.saveRecipe($scope.recipeForm.URL,$scope.recipe).then(function(ret){
+			$ionicPopup.alert({
+     			title: ret.error ? 'Error' : 'Success',
+     			template: ret.msg
+   			});	
+		
+			if(!ret.error){
+			//go to recipe list
+				$scope.closeModal();
+				$state.go('app.recipes');
+			}
+
 		});
    	};
 
@@ -119,8 +99,50 @@ angular.module('BechamBox.controllers', [])
 
 })
 
+.controller('recipeCtrl',function($scope,$stateParams,$ionicLoading,$window,DB){
+	$ionicLoading.show({template:"<ion-spinner></ion-spinner>"});
+	
+	var id = $stateParams.id;
+	$scope.data = {};
+	$scope.loadRecipe = function(){
+		DB.loadRecipe(id).then(function(data){
+			$scope.data = data;
+			$ionicLoading.hide();
+
+		},function(err){
+			console.log(err.message);
+			$ionicLoading.hide();
+		});
+	};	
+
+	$scope.openUrl = function(url){
+		$window.open(url,'_system');
+
+	};
+	$scope.loadRecipe();
+})
+.controller('recipesCtrl',function($scope,$ionicLoading,$sce,DB){
+	$scope.recipes = [];
+	
+	$ionicLoading.show({template:"<ion-spinner></ion-spinner>"});
+
+	$scope.loadRecipes = function(){
+		DB.loadRecipes().then(function(res){
+			var length = res.rows.length;
+			for(var i = 0; i < length; i++){
+
+				$scope.recipes.push(res.rows.item(i));
+			}			
+			$ionicLoading.hide();
+		},function(err){
+			console.log(err.message);
+			$ionicLoading.hide();
+		});
+	};
 
 
+	$scope.loadRecipes();
+})
 .controller('PlaylistsCtrl', function($scope) {
   $scope.playlists = [
     { title: 'Reggae', id: 1 },

@@ -4,9 +4,13 @@
 // 'starter' is the name of this angular module example (also set in a <body> attribute in index.html)
 // the 2nd parameter is an array of 'requires'
 // 'starter.controllers' is found in controllers.js
+
+//database instance
+var db;
+
 angular.module('BechamBox', ['ionic', 'BechamBox.controllers','BechamBox.services','BechamBox.filters','ngCordova'])
 
-.run(function($ionicPlatform) {
+.run(function($ionicPlatform,$cordovaSQLite) {
   $ionicPlatform.ready(function() {
     // Hide the accessory bar by default (remove this to show the accessory bar above the keyboard
     // for form inputs)
@@ -14,11 +18,20 @@ angular.module('BechamBox', ['ionic', 'BechamBox.controllers','BechamBox.service
       cordova.plugins.Keyboard.hideKeyboardAccessoryBar(true);
       cordova.plugins.Keyboard.disableScroll(true);
 
-    }
 
-	var db = $cordovaSQLite.openDB("recipes.db");
-    $cordovaSQLite.execute(db, "CREATE TABLE IF NOT EXISTS recipes (id integer primary key, name text,img text,url text, instructions text)");
-    $cordovaSQLite.execute(db, "CREATE TABLE IF NOT EXISTS recipe_ingredients (id integer primary key,FOREIGN KEY(recipe) REFERENCES recipes(id),ingredient text)");
+		 db = window.sqlitePlugin.openDatabase({name: "recipes.db", location: 1}, function(db){
+	    	db.executeSql("CREATE TABLE IF NOT EXISTS recipes (id integer primary key, name text,img text,url text, instructions text,notes text)",[],
+				function(){
+				//creating subtable
+    			db.executeSql("CREATE TABLE IF NOT EXISTS recipe_ingredients (id integer primary key,FOREIGN KEY(recipe) REFERENCES recipes(id),ingredient text)",[])
+    			db.executeSql("CREATE TABLE IF NOT EXISTS recipe_reviews (id integer primary key,FOREIGN KEY(recipe) REFERENCES recipes(id),rating int,review text,date date",[])
+			});
+		}, function(err){
+		    console.log('Open database ERROR: ' + JSON.stringify(err));
+		});	
+
+	}
+
 
     
 	if (window.StatusBar) {
@@ -66,6 +79,27 @@ angular.module('BechamBox', ['ionic', 'BechamBox.controllers','BechamBox.service
 		}
 
 	})
+	.state('app.recipes',{
+		url: '/recipes',
+		views: {
+			'menuContent':{
+				templateUrl: 'templates/recipes.html',
+				controller: 'recipesCtrl'
+			}
+		}
+
+	})
+	.state('app.recipe',{
+		url: '/recipe/:id',
+		views: {
+			'menuContent':{
+				templateUrl: 'templates/recipe.html',
+				controller: 'recipeCtrl'
+			}
+		}
+
+	})
+
     .state('app.playlists', {
       url: '/playlists',
       views: {

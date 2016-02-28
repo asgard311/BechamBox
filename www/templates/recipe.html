@@ -1,0 +1,18 @@
+<ion-view view-title="Recipe">
+      <ion-content>
+		<ion-list>
+			<a ng-click="openUrl(data.url)" class='item item-thumbnail-left'><img ng-src='{{data.img}}'>{{data.name}}
+				<p>{{data.url}}</p></a>
+			<ion-item class='item-divider'>Ingredients</ion-item>
+			<ion-item ng-repeat='item in data.ingredients'>{{item}}</ion-item>
+			<ion-item class='item-divider item-button-right'>Instructions<button class='button button-stable button-small button-clear' ng-click='toggleEdit()'><span ng-show="!showEdit">Edit</span><span ng-show="showEdit">Save</span></button></ion-item>
+			<ion-item ng-show="!showEdit" class='item-text-wrap'><div ng-bind-html='data.instructions| to_trusted'></div></ion-item>
+			<ion-item ng-show="showEdit" class='item-input'>
+				<textarea rows='20' ng-model="data.instructions"></textarea>
+			</ion-item>
+			<ion-item class='button-bar'>
+				<a class='button button-positive' ng-click="reviewRecipe()">Write Review</a>
+			</ion-item>
+		</ion-list>
+    </ion-content>
+</ion-view>

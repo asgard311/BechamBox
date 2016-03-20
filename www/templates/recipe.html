@@ -3,9 +3,14 @@
 		<ion-list>
 			<a ng-click="openUrl(data.url)" class='item item-thumbnail-left'><img ng-src='{{data.img}}'>{{data.name}}
 				<p>{{data.url}}</p></a>
+			<ion-item class='item-divider'>Notes</ion-item>
+			<ion-item ng-if="data.notes"><div ng-bind-html='data.notes|n_to_br'></div></ion-item>
+			<ion-item class='button-bar'>
+				<a class='button button-positive' ng-click="showAddNotes()">Add Notes</a>
+			</ion-item>
 			<ion-item class='item-divider'>Ingredients</ion-item>
 			<ion-item ng-repeat='item in data.ingredients'>{{item}}</ion-item>
-			<ion-item class='item-divider item-button-right'>Instructions<button class='button button-stable button-small button-clear' ng-click='toggleEdit()'><span ng-show="!showEdit">Edit</span><span ng-show="showEdit">Save</span></button></ion-item>
+			<ion-item class='item-divider item-button-right'>Instructions</ion-item>
 			<ion-item ng-show="!showEdit" class='item-text-wrap'><div ng-bind-html='data.instructions| to_trusted'></div></ion-item>
 			<ion-item ng-show="showEdit" class='item-input'>
 				<textarea rows='20' ng-model="data.instructions"></textarea>
@@ -16,3 +21,41 @@
 		</ion-list>
     </ion-content>
 </ion-view>
+
+<script id="write-review.html" type="text/ng-template">
+  <ion-modal-view>
+    <ion-header-bar>
+      <h1 class="title">Write Review</h1>
+    </ion-header-bar>
+    <ion-content>
+		<ion-list>
+			<ion-item><rating ng-model="rating.rate" max="rating.max"></rating></ion-item>
+			<ion-item class='item-button-right'>{{rating.date | date: 'MMM d, yyyy' }}<button class='button button-calm' ng-click="openDate()"><i class='icon ion-ios-calendar'></i></button></ion-item>
+			<ion-item class='item-input'>
+				<textarea rows='20' ng-model="rating.notes"></textarea>
+			</ion-item>
+			<ion-item class='button-bar'>
+				<a class='button button-positive' ng-click="saveReview()">Save</a>
+				<a class='button button-light' ng-click='closeModal()'>Cancel</a></ion-item>
+		</ion-list>
+    </ion-content>
+  </ion-modal-view>
+</script>
+
+<script id="add-notes.html" type="text/ng-template">
+  <ion-modal-view>
+    <ion-header-bar>
+      <h1 class="title">Edit Notes</h1>
+    </ion-header-bar>
+    <ion-content>
+		<ion-list>
+			<ion-item class='item-input'>
+				<textarea rows='20' ng-model="data.notes"></textarea>
+			</ion-item>
+			<ion-item class='button-bar'>
+				<a class='button button-positive' ng-click="saveNotes()">Save</a>
+				<a class='button button-light' ng-click='closeModal()'>Cancel</a></ion-item>
+		</ion-list>
+    </ion-content>
+  </ion-modal-view>
+</script>

@@ -115,7 +115,7 @@ angular.module('BechamBox.services',[])
 		loadRecipe:function(id){
 			var df = $q.defer();
 			//get recipe and then ingredients
-			$cordovaSQLite.execute(db,"SELECT r.id,r.name,r.img,r.url,r.instructions,i.ingredient as ingredients FROM recipes r INNER JOIN recipe_ingredients i on i.recipe = r.id WHERE r.id = ?",[id])
+			$cordovaSQLite.execute(db,"SELECT r.notes,r.id,r.name,r.img,r.url,r.instructions,i.ingredient as ingredients FROM recipes r INNER JOIN recipe_ingredients i on i.recipe = r.id WHERE r.id = ?",[id])
 			.then(function(res){
 					var data = res.rows.item(0);
 					data.ingredients = [data.ingredients];
@@ -129,6 +129,13 @@ angular.module('BechamBox.services',[])
 				});
 
 			return df.promise;
+		},
+		saveNotes: function(id,notes){
+			return $cordovaSQLite.execute(db,"UPDATE recipes SET notes = ? WHERE id = ?",[notes,id]);
+		},
+		saveReview: function(id,rating){
+			return $cordovaSQLite.execute(db,"INSERT INTO recipe_reviews (recipe,rating,review,date) VALUES (?,?,?,?)",[id,rating.rate,rating.notes,rating.date]);
+		
 		}
 	};
 

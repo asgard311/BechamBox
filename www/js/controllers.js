@@ -83,7 +83,6 @@ angular.module('BechamBox.controllers', [])
 
 	$scope.toggleEdit = function(){
 		$scope.showEdit = $scope.showEdit ? false : true;
-		console.log($scope.showEdit);
 	};
 
 	$scope.openModal = function() {
@@ -99,11 +98,39 @@ angular.module('BechamBox.controllers', [])
 
 })
 
-.controller('recipeCtrl',function($scope,$stateParams,$ionicLoading,$window,DB){
+.controller('recipeCtrl',function($scope,$stateParams,$ionicLoading,$window,DB,$ionicModal,$ionicPopup,$cordovaDatePicker){
 	$ionicLoading.show({template:"<ion-spinner></ion-spinner>"});
 	
 	var id = $stateParams.id;
 	$scope.data = {};
+	$scope.rating = {max:5,date:new Date()};
+
+	//datepicker options
+	var options = {
+    	date: new Date(),
+    	mode: 'date', // or 'time'
+
+ 	};
+
+
+
+	$ionicModal.fromTemplateUrl('add-notes.html',{
+		scope:$scope,
+		animation:'slide-in-up'
+	}).then(function(modal){
+		$scope.nmodal = modal;
+
+	});
+
+	$ionicModal.fromTemplateUrl('write-review.html',{
+		scope:$scope,
+		animation:'slide-in-up'
+	}).then(function(modal){
+		$scope.rmodal = modal;
+	});
+
+
+
 	$scope.loadRecipe = function(){
 		DB.loadRecipe(id).then(function(data){
 			$scope.data = data;
@@ -119,6 +146,52 @@ angular.module('BechamBox.controllers', [])
 		$window.open(url,'_system');
 
 	};
+
+	$scope.showAddNotes = function(){
+		$scope.nmodal.show();
+		
+	};
+
+	$scope.reviewRecipe = function(){
+		$scope.rmodal.show();
+	}
+
+	$scope.openDate = function(){
+		$cordovaDatePicker.show(options).then(function(date){
+			$scope.rating.date = date;        
+    	});
+	};
+
+	$scope.saveNotes = function(){
+		DB.saveNotes(id,$scope.data.notes).then(function(){
+			$ionicPopup.alert({
+     			title:  'Success',
+     			template: 'Notes Updated'
+   			});
+			$scope.closeModal();	
+		});
+	};
+
+	$scope.saveReview = function(){
+		DB.saveReview(id,$scope.rating).then(function(){
+			$ionicPopup.alert({
+				title:'Success',
+				template: 'Review Added'
+			});
+		});
+	};
+
+	$scope.closeModal = function(){
+		$scope.nmodal.hide();
+		$scope.rmodal.hide();
+	};
+
+  	//Cleanup the modal when we're done with it!
+  	$scope.$on('$destroy', function() {
+    	$scope.nmodal.remove();
+    	$scope.rmodal.remove();
+  	});
+
 	$scope.loadRecipe();
 })
 .controller('recipesCtrl',function($scope,$ionicLoading,$sce,DB){

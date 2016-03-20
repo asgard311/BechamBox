@@ -8,7 +8,7 @@
 //database instance
 var db;
 
-angular.module('BechamBox', ['ionic', 'BechamBox.controllers','BechamBox.services','BechamBox.filters','ngCordova'])
+angular.module('BechamBox', ['ionic', 'BechamBox.controllers','BechamBox.services','BechamBox.filters','ngCordova','ionic.rating'])
 
 .run(function($ionicPlatform,$cordovaSQLite) {
   $ionicPlatform.ready(function() {
@@ -20,17 +20,14 @@ angular.module('BechamBox', ['ionic', 'BechamBox.controllers','BechamBox.service
 
 
 		 db = window.sqlitePlugin.openDatabase({name: "recipes.db", location: 1}, function(db){
-	    	db.executeSql("CREATE TABLE IF NOT EXISTS recipes (id integer primary key, name text,img text,url text, instructions text,notes text)",[],
-				function(){
-				//creating subtable
-    			db.executeSql("CREATE TABLE IF NOT EXISTS recipe_ingredients (id integer primary key,FOREIGN KEY(recipe) REFERENCES recipes(id),ingredient text)",[])
-    			db.executeSql("CREATE TABLE IF NOT EXISTS recipe_reviews (id integer primary key,FOREIGN KEY(recipe) REFERENCES recipes(id),rating int,review text,date date",[])
-			});
+	    	db.executeSql("CREATE TABLE IF NOT EXISTS recipes (id integer primary key, name text,img text,url text, instructions text,notes text)",[]);
+		 	db.executeSql("CREATE TABLE IF NOT EXISTS recipe_ingredients (id integer primary key,recipe int,ingredient text)",[]);
+			db.executeSql("CREATE TABLE IF NOT EXISTS recipe_reviews (id integer primary key,recipe,rating int,review text,date date",[]);
 		}, function(err){
 		    console.log('Open database ERROR: ' + JSON.stringify(err));
 		});	
 
-	}
+      	}
 
 
     

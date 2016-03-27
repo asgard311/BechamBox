@@ -112,6 +112,20 @@ angular.module('BechamBox.services',[])
 		loadRecipes:function(){
 			return $cordovaSQLite.execute(db,"SELECT * FROM recipes ORDER BY name",[]);
 		},
+		loadReviews:function(id){
+			var df = $q.defer();
+			var reviews = [];
+
+			$cordovaSQLite.execute(db,"SELECT * FROM recipe_reviews WHERE id = ? ORDER BY date(date) DESC",[id]).then(function(res){
+				for(var i = 0; i < res.rows.length; i++){
+					reviews.push(res.rows.item(i));
+				}
+				df.resolve(reviews);		
+			},function(){
+				df.resolve(reviews);
+			});
+			return df.promise;
+		},
 		loadRecipe:function(id){
 			var df = $q.defer();
 			//get recipe and then ingredients
@@ -122,7 +136,8 @@ angular.module('BechamBox.services',[])
 					for(var i = 1; i < res.rows.length; i++){
 						data.ingredients.push(res.rows.item(i).ingredients);
 					}
-					df.resolve(data)
+
+					df.resolve(data);
 				},function(err){
 					console.log(err.message);
 					df.resolve();
@@ -134,7 +149,8 @@ angular.module('BechamBox.services',[])
 			return $cordovaSQLite.execute(db,"UPDATE recipes SET notes = ? WHERE id = ?",[notes,id]);
 		},
 		saveReview: function(id,rating){
-			return $cordovaSQLite.execute(db,"INSERT INTO recipe_reviews (recipe,rating,review,date) VALUES (?,?,?,?)",[id,rating.rate,rating.notes,rating.date]);
+			var date = rating.date.toDateString();
+			return $cordovaSQLite.execute(db,"INSERT INTO recipe_reviews (recipe,rating,review,date) VALUES (?,?,?,?)",[id,rating.rate,rating.notes,date]);
 		
 		}
 	};

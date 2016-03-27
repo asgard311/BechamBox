@@ -102,7 +102,7 @@ angular.module('BechamBox.controllers', [])
 	$ionicLoading.show({template:"<ion-spinner></ion-spinner>"});
 	
 	var id = $stateParams.id;
-	$scope.data = {};
+	$scope.data = {reviews:[]};
 	$scope.rating = {max:5,date:new Date()};
 
 	//datepicker options
@@ -134,10 +134,13 @@ angular.module('BechamBox.controllers', [])
 	$scope.loadRecipe = function(){
 		DB.loadRecipe(id).then(function(data){
 			$scope.data = data;
+			DB.loadReviews(id).then(function(reviews){
+				data.reviews = reviews;
+			});
 			$ionicLoading.hide();
 
 		},function(err){
-			console.log(err.message);
+
 			$ionicLoading.hide();
 		});
 	};	
@@ -146,6 +149,10 @@ angular.module('BechamBox.controllers', [])
 		$window.open(url,'_system');
 
 	};
+
+	$scope.showReview = function(review){
+		review.show = review.show ? false : true;
+	}
 
 	$scope.showAddNotes = function(){
 		$scope.nmodal.show();
@@ -174,10 +181,16 @@ angular.module('BechamBox.controllers', [])
 
 	$scope.saveReview = function(){
 		DB.saveReview(id,$scope.rating).then(function(){
+			DB.loadReviews(id).then(function(reviews){
+				$scope.data.reviews = reviews;
+			});
+			$scope.closeModal();
 			$ionicPopup.alert({
 				title:'Success',
 				template: 'Review Added'
 			});
+		},function(err){
+			console.log(err.message);
 		});
 	};
 
